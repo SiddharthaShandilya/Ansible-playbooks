@@ -1,0 +1,84 @@
+- name : Retrieving Docker container IP
+  hosts: localhost
+
+  vars_prompt:
+    - name: c_name
+      prompt: Enter Container Name
+      private: no
+
+    - name: ssh_port
+      prompt: Enter The Exposed Port For SSH
+      private: no
+
+    - name: web_port
+      prompt: Enter The Exposed Port For WebServer
+      private: no
+
+
+  tasks:
+    -  name: " DOCKER  REPOSITORY"
+       yum_repository:
+         name: "docker"
+         description: " Docker-repo"
+         baseurl: " https://download.docker.com/linux/centos/7/x86_64/stable"
+         gpgcheck: "no"
+
+    -  name: checking for docker-ce file on the system
+       command: " rpm -q docker-ce"
+       register: check
+       ignore_errors: True
+
+    -  name: " INSTALLING DOCKER"
+       command: "yum install docker-ce --nobest -y"
+       when: check.rc != 0
+
+    -  name: "Starting Docker"
+       service:
+           name: "docker"
+           state: started
+           enabled: yes
+
+    -  name: "Installing Docker SDK for python3"
+       command: "pip3 install docker-py"
+
+    -  name: "Downloading ssh-enabled customized docker images"
+       docker_image:
+           name: "centos104/sid-centos-ssh"
+           source: "pull"
+           tag: latest
+
+    -  name: " creating a persistent volume for docker images"
+       file:
+            path: "/container"
+            state: directory
+
+
+    -  name: " Copying a file inside the container directory"
+       copy:
+          src: "myfile.html"
+          dest: "/container"
+
+    -  name: " launching and Exposing docker containers ports"
+       docker_container:
+             name: "{{ c_name }}"
+             image: "centos104/sid-centos-ssh"     # the image mentioned is ssh enabled 
+             state: started
+             ports:
+                -     "{{ web_port }}:80"
+                -     "{{ ssh_port }}:22"
+             volumes: /container:/usr/local/apache2/htdocs
+             tty: yes
+             interactive: yes
+             detach: yes
+       register: x
+
+    -  name: debugging
+       debug:
+           var: x.container.NetworkSettings.IPAddress
+
+    -  name: Dynamically adding container IP to the inventory
+       blockinfile:
+               path: "/root/ansible-playbooks/ans/haproxy/inventory.txt"
+               block: |
+                     [docker]
+                         {{ x['container']['NetworkSettings']['IPAddress'] }} ansible_port= {{ ssh_port }} ansible_ssh_user=root ansible_ssh_pass=**** ansible_connection=local
