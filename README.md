@@ -6,7 +6,7 @@ HI there
 [![forthebadge](https://forthebadge.com/images/badges/built-by-developers.svg)](http://forthebadge.com)   [![forthebadge](https://forthebadge.com/images/badges/made-with-python.svg)](http://forthebadge.com)      [![forthebadge](https://forthebadge.com/images/badges/60-percent-of-the-time-works-every-time.svg)](https://forthebadge.com)
 
 
-
+<!--
 The application uses cnn for training new model for recognizing a face as well as train a new face followed by allowing user for access or use multiple function.
 
 
@@ -17,7 +17,7 @@ The application uses cnn for training new model for recognizing a face as well a
 
 *If you're interested in knowing the powerlevel9k configuration to get this prompt, have a look at [this gist](https://gist.github.com/athityakumar/1bd5e9e24cd2a1891565573a893993eb).*
 
--->
+
 
 # Table of contents
 
